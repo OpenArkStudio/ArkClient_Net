@@ -9,16 +9,16 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 
-namespace NFTCPClient
+namespace AFTCPClient
 {
-    public enum NFTCPClientState
+    public enum AFTCPClientState
     {
         Connecting,
         Connected,
         Disconnected
     }
 	
-	public enum NFTCPEventType
+	public enum AFTCPEventType
     {
         None,
         Connected,
@@ -27,12 +27,12 @@ namespace NFTCPClient
         DataReceived
     }
 
-    public class NFSocketPacket
+    public class AFSocketPacket
     {
         public byte[] bytes = null;
         public int bytesCount = 0;
 
-        public NFSocketPacket(byte[] bytes, int bytesCount)
+        public AFSocketPacket(byte[] bytes, int bytesCount)
         {
             this.bytes = bytes;
             this.bytesCount = bytesCount;
@@ -40,14 +40,14 @@ namespace NFTCPClient
 
     }
 
-    public class NFTCPEventParams
+    public class AFTCPEventParams
     {
-        public NFClientNet client = null;
+        public AFClientNet client = null;
         public int clientID = 0;
         public TcpClient socket = null;
-        public NFTCPEventType eventType = NFTCPEventType.None;
+        public AFTCPEventType eventType = AFTCPEventType.None;
         public string message = "";
-        public NFSocketPacket packet = null;
+        public AFSocketPacket packet = null;
 
     }
 
@@ -216,11 +216,11 @@ namespace NFTCPClient
         } // Swap
     };
 	
-    public class NFClientNet
+    public class AFClientNet
     {
-        public NFNet net = null;
+        public AFNet net = null;
 
-        public NFClientNet(NFNet xnet)
+        public AFClientNet(AFNet xnet)
         {
             net = xnet;
             Init();
@@ -228,30 +228,30 @@ namespace NFTCPClient
 
         void Init()
         {
-            mxState = NFTCPClientState.Disconnected;
-            mxEvents = new Queue<NFTCPEventType>();
+            mxState = AFTCPClientState.Disconnected;
+            mxEvents = new Queue<AFTCPEventType>();
             mxMessages = new Queue<string>();
-            mxPackets = new Queue<NFSocketPacket>();
+            mxPackets = new Queue<AFSocketPacket>();
         }
         // MonoBehaviour
         private int bufferSize = 65536;
 
-        private NFTCPClientState mxState;
+        private AFTCPClientState mxState;
         private NetworkStream mxStream;
         private StreamWriter mxWriter;
         private StreamReader mxReader;
         private Thread mxReadThread;
         private TcpClient mxClient;
-        private Queue<NFTCPEventType> mxEvents;
+        private Queue<AFTCPEventType> mxEvents;
         private Queue<string> mxMessages;
-        private Queue<NFSocketPacket> mxPackets;
+        private Queue<AFSocketPacket> mxPackets;
 
         public bool IsConnected()
         {
-            return mxState == NFTCPClientState.Connected;
+            return mxState == AFTCPClientState.Connected;
         }
 
-        public NFTCPClientState GetState()
+        public AFTCPClientState GetState()
         {
             return mxState;
         }
@@ -263,18 +263,18 @@ namespace NFTCPClient
             {
                 lock (mxEvents)
                 {
-                    NFTCPEventType eventType = mxEvents.Dequeue();
+                    AFTCPEventType eventType = mxEvents.Dequeue();
 
-                    NFTCPEventParams eventParams = new NFTCPEventParams();
+                    AFTCPEventParams eventParams = new AFTCPEventParams();
                     eventParams.eventType = eventType;
                     eventParams.client = this;
                     eventParams.socket = mxClient;
 
-                    if (eventType == NFTCPEventType.Connected)
+                    if (eventType == AFTCPEventType.Connected)
                     {
                         OnClientConnect(eventParams);
                     }
-                    else if (eventType == NFTCPEventType.Disconnected)
+                    else if (eventType == AFTCPEventType.Disconnected)
                     {
                         OnClientDisconnect(eventParams);
 
@@ -283,7 +283,7 @@ namespace NFTCPClient
                         mxClient.Close();
 
                     }
-                    else if (eventType == NFTCPEventType.DataReceived)
+                    else if (eventType == AFTCPEventType.DataReceived)
                     {
                         lock (mxPackets)
                         {
@@ -292,7 +292,7 @@ namespace NFTCPClient
                             OnDataReceived(eventParams);
                         }
                     }
-                    else if (eventType == NFTCPEventType.ConnectionRefused)
+                    else if (eventType == AFTCPEventType.ConnectionRefused)
                     {
 
                     }
@@ -321,7 +321,7 @@ namespace NFTCPClient
                 e.ToString();
                 lock (mxEvents)
                 {
-                    mxEvents.Enqueue(NFTCPEventType.ConnectionRefused);
+                    mxEvents.Enqueue(AFTCPEventType.ConnectionRefused);
                 }
 
             }
@@ -356,22 +356,22 @@ namespace NFTCPClient
                    lock (mxEvents)
                    {
 
-                       mxEvents.Enqueue(NFTCPEventType.DataReceived);
+                       mxEvents.Enqueue(AFTCPEventType.DataReceived);
                    }
                    lock (mxPackets)
                    {
-                       mxPackets.Enqueue(new NFSocketPacket(bytes, bytesRead));
+                       mxPackets.Enqueue(new AFSocketPacket(bytes, bytesRead));
                    }
 
                }
             }
 
-            mxState = NFTCPClientState.Disconnected;
+            mxState = AFTCPClientState.Disconnected;
 
             mxClient.Close();
             lock (mxEvents)
             {
-                mxEvents.Enqueue(NFTCPEventType.Disconnected);
+                mxEvents.Enqueue(AFTCPEventType.Disconnected);
             }
 
         }
@@ -379,12 +379,12 @@ namespace NFTCPClient
         // Public
         public void Connect(string hostname, int port)
         {
-            if (mxState == NFTCPClientState.Connected)
+            if (mxState == AFTCPClientState.Connected)
             {
                 return;
             }
 
-            mxState = NFTCPClientState.Connecting;
+            mxState = AFTCPClientState.Connecting;
 
             mxMessages.Clear();
             mxEvents.Clear();
@@ -401,7 +401,7 @@ namespace NFTCPClient
         public void Disconnect()
         {
 
-            mxState = NFTCPClientState.Disconnected;
+            mxState = AFTCPClientState.Disconnected;
 
             try { if (mxReader != null) mxReader.Close(); }
             catch (Exception e) { e.ToString(); }
@@ -438,9 +438,9 @@ namespace NFTCPClient
                 mxReader = new StreamReader(mxStream);
                 mxWriter = new StreamWriter(mxStream);
 
-                mxState = NFTCPClientState.Connected;
+                mxState = AFTCPClientState.Connected;
 
-                mxEvents.Enqueue(NFTCPEventType.Connected);
+                mxEvents.Enqueue(AFTCPEventType.Connected);
 
                 mxReadThread = new Thread(ReadData);
                 mxReadThread.IsBackground = true;
@@ -448,7 +448,7 @@ namespace NFTCPClient
             }
             else
             {
-                mxState = NFTCPClientState.Disconnected;
+                mxState = AFTCPClientState.Disconnected;
             }
         }
 
@@ -458,12 +458,12 @@ namespace NFTCPClient
         private UInt32 mnPacketSize = 0;
         private byte[] mPacket = new byte[ConstDefine.MAX_PACKET_LEN];
 
-        public void OnClientConnect(NFTCPEventParams eventParams)
+        public void OnClientConnect(AFTCPEventParams eventParams)
         {
             net.OnConnect();
         }
 
-        public void OnClientDisconnect(NFTCPEventParams eventParams)
+        public void OnClientDisconnect(AFTCPEventParams eventParams)
         {
             if (IsConnected())
             {
@@ -474,12 +474,12 @@ namespace NFTCPClient
 
         }
 
-        public void OnClientConnectionRefused(NFTCPEventParams eventParams)
+        public void OnClientConnectionRefused(AFTCPEventParams eventParams)
         {
             net.Log("Client refused");
         }
 
-        public void OnDataReceived(NFTCPEventParams eventParams)
+        public void OnDataReceived(AFTCPEventParams eventParams)
         {
             byte[] bytes = eventParams.packet.bytes;
             int bytesCount = eventParams.packet.bytesCount;
@@ -497,7 +497,7 @@ namespace NFTCPClient
 
         void OnDataReceived()
         {
-            if (mnPacketSize >= ConstDefine.NF_PACKET_HEAD_SIZE)
+            if (mnPacketSize >= ConstDefine.AF_PACKET_HEAD_SIZE)
             {
                 object structType = new MsgHead();
                 byte[] headBytes = new byte[Marshal.SizeOf(structType)];
@@ -514,7 +514,7 @@ namespace NFTCPClient
 
                     if (false == OnDataReceived(this, body_head, head.unDataLen))
                     {
-                        OnClientDisconnect(new NFTCPEventParams());
+                        OnClientDisconnect(new AFTCPEventParams());
                     }
                 }
                 else if (mnPacketSize > head.unDataLen)
@@ -530,7 +530,7 @@ namespace NFTCPClient
 
                     if (false == OnDataReceived(this, body_head, head.unDataLen))
                     {
-                        OnClientDisconnect(new NFTCPEventParams());
+                        OnClientDisconnect(new AFTCPEventParams());
                     }
 
                     OnDataReceived();
@@ -538,7 +538,7 @@ namespace NFTCPClient
             }
         }
 
-        bool OnDataReceived(NFClientNet client, byte[] bytes, UInt32 bytesCount)
+        bool OnDataReceived(AFClientNet client, byte[] bytes, UInt32 bytesCount)
         {
             if (bytes.Length == bytesCount)
             {
@@ -546,11 +546,11 @@ namespace NFTCPClient
                 StructureTransform.ByteArrayToStructureEndian(bytes, ref structType, 0);
                 MsgHead head = (MsgHead)structType;
 
-                Int32 nBodyLen = (Int32)bytesCount - (Int32)ConstDefine.NF_PACKET_HEAD_SIZE;
+                Int32 nBodyLen = (Int32)bytesCount - (Int32)ConstDefine.AF_PACKET_HEAD_SIZE;
                 if (nBodyLen > 0)
                 {
                     byte[] body = new byte[nBodyLen];
-                    Array.Copy(bytes, ConstDefine.NF_PACKET_HEAD_SIZE, body, 0, nBodyLen);
+                    Array.Copy(bytes, ConstDefine.AF_PACKET_HEAD_SIZE, body, 0, nBodyLen);
 
                     client.net.OnMessageEvent(head, body);
                     return true;

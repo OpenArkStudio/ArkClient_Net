@@ -7,8 +7,8 @@
     <ProjectGuid>{E615A80A-B280-4E0A-8D6C-20D63A860886}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NFNet</RootNamespace>
-    <AssemblyName>NFNet</AssemblyName>
+    <RootNamespace>AFNet</RootNamespace>
+    <AssemblyName>AFNet</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -39,9 +39,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NFClientNet.cs" />
-    <Compile Include="NFINet.cs" />
-    <Compile Include="NFNet.cs" />
+    <Compile Include="AFClientNet.cs" />
+    <Compile Include="AFINet.cs" />
+    <Compile Include="AFNet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using NFTCPClient;
+using AFTCPClient;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,11 +10,11 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 
-namespace NFTCPClient
+namespace AFTCPClient
 {
     public class ConstDefine
     {
-        public static UInt32 NF_PACKET_HEAD_SIZE = 6;
+        public static UInt32 AF_PACKET_HEAD_SIZE = 6;
         public static int MAX_PACKET_LEN = 655360;
     };
 
@@ -30,7 +30,7 @@ namespace NFTCPClient
         public UInt32 unDataLen;
     };
 
-    public abstract class NFINet
+    public abstract class AFINet
     {
         public delegate void MsgDelegation(MsgHead head, MemoryStream stream);
         public delegate void ResultCodeDelegation(int eGameEventCode);

@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using NFTCPClient;
+using AFTCPClient;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,9 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 
-public class NFNet : NFINet
+public class AFNet : AFINet
 {
-    public NFClientNet mxClient = null;
+    public AFClientNet mxClient = null;
     public ArrayList mReciveaMsgList = new ArrayList();
 
     private Hashtable mhtMsgDelegation = new Hashtable();
@@ -21,13 +21,13 @@ public class NFNet : NFINet
     OnConnectDelegation mxOnConnectDelegation;
     OnDisConnectDelegation mxOnDisConnectDelegation;
 
-    public NFNet()
+    public AFNet()
     {
     }
 
     public override void StartConnect(string strIP, int nPort)
     {
-        mxClient = new NFClientNet(this);        
+        mxClient = new AFClientNet(this);        
         mxClient.Connect(strIP, nPort);
     }
 
@@ -35,7 +35,7 @@ public class NFNet : NFINet
     {
         MsgHead head = new MsgHead();
         head.unMsgID = (UInt16)unMsgID;
-        head.unDataLen = (UInt32)bodyByte.Length + (UInt32)ConstDefine.NF_PACKET_HEAD_SIZE;
+        head.unDataLen = (UInt32)bodyByte.Length + (UInt32)ConstDefine.AF_PACKET_HEAD_SIZE;
 
         byte[] headByte = StructureTransform.StructureToByteArrayEndian(head);
 
@@ -137,7 +137,7 @@ public class NFNet : NFINet
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public void OnMessageEvent(MsgHead head, byte[] bytes)
     {
-        if (head.unDataLen != bytes.Length + ConstDefine.NF_PACKET_HEAD_SIZE)
+        if (head.unDataLen != bytes.Length + ConstDefine.AF_PACKET_HEAD_SIZE)
         {
             return;
         }
