@@ -323,7 +323,6 @@ namespace AFTCPClient
                 {
                     mxEvents.Enqueue(AFTCPEventType.ConnectionRefused);
                 }
-
             }
 
         }
