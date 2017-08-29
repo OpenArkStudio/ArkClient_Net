@@ -218,9 +218,9 @@ namespace AFTCPClient
 	
     public class AFClientNet
     {
-        public AFNet net = null;
+        public AFCNet net = null;
 
-        public AFClientNet(AFNet xnet)
+        public AFClientNet(AFCNet xnet)
         {
             net = xnet;
             Init();

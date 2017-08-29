@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 
-public class AFNet : AFINet
+public class AFCNet : AFINet
 {
     public AFClientNet mxClient = null;
     public ArrayList mReciveaMsgList = new ArrayList();
@@ -21,7 +21,7 @@ public class AFNet : AFINet
     OnConnectDelegation mxOnConnectDelegation;
     OnDisConnectDelegation mxOnDisConnectDelegation;
 
-    public AFNet()
+    public AFCNet()
     {
     }
 
