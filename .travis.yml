@@ -1,0 +1,4 @@
+language: csharp
+solution: NFNet.sln
+
+dist: precise
