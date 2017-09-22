@@ -39,10 +39,8 @@ public class AFCNet : AFINet
         }
     }
 
-    public override void SendMsg(int unMsgID, byte[] bodyByte)
+    public override void SendMsg(MsgHead head, byte[] bodyByte)
     {
-        MsgHead head = new MsgHead();
-        head.unMsgID = (UInt16)unMsgID;
         head.unDataLen = (UInt32)bodyByte.Length + (UInt32)ConstDefine.AF_PACKET_HEAD_SIZE;
 
         byte[] headByte = StructureTransform.StructureToByteArrayEndian(head);

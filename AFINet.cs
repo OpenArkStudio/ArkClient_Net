@@ -14,7 +14,7 @@ namespace AFTCPClient
 {
     public class ConstDefine
     {
-        public static UInt32 AF_PACKET_HEAD_SIZE = 6;
+        public static UInt32 AF_PACKET_HEAD_SIZE = 14;
         public static int MAX_PACKET_LEN = 655360;
     };
 
@@ -28,6 +28,8 @@ namespace AFTCPClient
         }
         public UInt16 unMsgID;
         public UInt32 unDataLen;
+        public Int32 nHead32;
+        public Int32 nData32;
     };
 
     public abstract class AFINet
@@ -39,7 +41,7 @@ namespace AFTCPClient
         public delegate void OnDisConnectDelegation();
 
         public abstract void StartConnect(string strIP, int nPort);
-        public abstract void SendMsg(int unMsgID, byte[] bodyByte);
+        public abstract void SendMsg(MsgHead head, byte[] bodyByte);
         public abstract void Update();
         public abstract void Disconnect();
         public abstract bool RegisteredDelegation(int eMsgID, MsgDelegation msgDelegate);
