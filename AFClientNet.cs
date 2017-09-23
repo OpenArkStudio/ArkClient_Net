@@ -546,7 +546,7 @@ namespace AFTCPClient
                 MsgHead head = (MsgHead)structType;
 
                 Int32 nBodyLen = (Int32)bytesCount - (Int32)ConstDefine.AF_PACKET_HEAD_SIZE;
-                if (nBodyLen > 0)
+                if (nBodyLen >= 0)
                 {
                     byte[] body = new byte[nBodyLen];
                     Array.Copy(bytes, ConstDefine.AF_PACKET_HEAD_SIZE, body, 0, nBodyLen);
