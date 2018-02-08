@@ -15,7 +15,7 @@ namespace AFTCPClient
 public class ConstDefine
 {
     public static UInt32 AF_PACKET_HEAD_SIZE = 22;
-    public static int MAX_PACKET_LEN = 655360;
+    public static UInt32 MAX_PACKET_LEN = 655360;
 };
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

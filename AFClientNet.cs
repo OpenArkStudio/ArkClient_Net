@@ -27,6 +27,18 @@ namespace AFTCPClient
         DataReceived
     }
 
+    public class AFTCPEvent
+    {
+        public AFTCPEventType Type;
+        // Type == DataReceived
+        public AFSocketPacket Data;
+        public AFTCPEvent(AFTCPEventType t, AFSocketPacket data = null)
+        {
+            Type = t;
+            Data = data;
+        }
+    }
+
     public class AFSocketPacket
     {
         public byte[] bytes = null;
@@ -229,9 +241,7 @@ namespace AFTCPClient
         void Init()
         {
             mxState = AFTCPClientState.Disconnected;
-            mxEvents = new Queue<AFTCPEventType>();
-            mxMessages = new Queue<string>();
-            mxPackets = new Queue<AFSocketPacket>();
+            mxEventQueue = new Queue<AFTCPEvent>();
         }
         // MonoBehaviour
         private int bufferSize = 65536;
@@ -242,9 +252,9 @@ namespace AFTCPClient
         private StreamReader mxReader;
         private Thread mxReadThread;
         private TcpClient mxClient;
-        private Queue<AFTCPEventType> mxEvents;
-        private Queue<string> mxMessages;
-        private Queue<AFSocketPacket> mxPackets;
+
+
+        private Queue<AFTCPEvent> mxEventQueue;
 
         public bool IsConnected()
         {
@@ -258,42 +268,39 @@ namespace AFTCPClient
 
         public void Update()
         {
-			
-            while (mxEvents.Count > 0)
+            AFTCPEvent[] eventArray = null;
+            lock(mxEventQueue)
             {
-                lock (mxEvents)
-                {
-                    AFTCPEventType eventType = mxEvents.Dequeue();
+                eventArray = mxEventQueue.ToArray();
+                mxEventQueue.Clear();
+            }
 
+            if (eventArray != null && eventArray.Length > 0)
+            {
+                for (int i = 0; i < eventArray.Length; i++)
+                {
+                    var ev = eventArray[i];
                     AFTCPEventParams eventParams = new AFTCPEventParams();
-                    eventParams.eventType = eventType;
+                    eventParams.eventType = ev.Type;
                     eventParams.client = this;
                     eventParams.socket = mxClient;
+                    eventParams.packet = ev.Data;
 
-                    if (eventType == AFTCPEventType.Connected)
+                    switch (ev.Type)
                     {
-                        OnClientConnect(eventParams);
-                    }
-                    else if (eventType == AFTCPEventType.Disconnected)
-                    {
-                        OnClientDisconnect(eventParams);
-
-                        mxReader.Close();
-                        mxWriter.Close();
-                        mxClient.Close();
-
-                    }
-                    else if (eventType == AFTCPEventType.DataReceived)
-                    {
-                        lock (mxPackets)
-                        {
-                            eventParams.packet = mxPackets.Dequeue();
-                        
+                        case AFTCPEventType.Connected:
+                            OnClientConnect(eventParams);
+                            break;
+                        case AFTCPEventType.Disconnected:
+                            OnClientDisconnect(eventParams);
+                            break;
+                        case AFTCPEventType.ConnectionRefused:
+                            break;
+                        case AFTCPEventType.DataReceived:
                             OnDataReceived(eventParams);
-                        }
-                    }
-                    else if (eventType == AFTCPEventType.ConnectionRefused)
-                    {
+                            break;
+                        default:
+                            break;
 
                     }
                 }
@@ -319,9 +326,9 @@ namespace AFTCPClient
             catch (Exception e)
             {
                 e.ToString();
-                lock (mxEvents)
+                lock(mxEventQueue)
                 {
-                    mxEvents.Enqueue(AFTCPEventType.ConnectionRefused);
+                    mxEventQueue.Enqueue(new AFTCPEvent(AFTCPEventType.ConnectionRefused));
                 }
             }
 
@@ -352,25 +359,16 @@ namespace AFTCPClient
                }
                else
                {
-                   lock (mxEvents)
+                   lock(mxEventQueue)
                    {
-
-                       mxEvents.Enqueue(AFTCPEventType.DataReceived);
+                        mxEventQueue.Enqueue(new AFTCPEvent(AFTCPEventType.DataReceived, new AFSocketPacket(bytes, bytesRead)));
                    }
-                   lock (mxPackets)
-                   {
-                       mxPackets.Enqueue(new AFSocketPacket(bytes, bytesRead));
-                   }
-
                }
             }
-
-            mxState = AFTCPClientState.Disconnected;
-
             mxClient.Close();
-            lock (mxEvents)
+            lock(mxEventQueue)
             {
-                mxEvents.Enqueue(AFTCPEventType.Disconnected);
+                mxEventQueue.Enqueue(new AFTCPEvent(AFTCPEventType.Disconnected));
             }
 
         }
@@ -385,8 +383,8 @@ namespace AFTCPClient
 
             mxState = AFTCPClientState.Connecting;
 
-            mxMessages.Clear();
-            mxEvents.Clear();
+
+            mxEventQueue.Clear();
 
             mxClient = new TcpClient();
 
@@ -423,8 +421,6 @@ namespace AFTCPClient
                 return;
 
             mxStream.Write(bytes, offset, size);
-            mxStream.Flush();
-
         }
 
         public void SetTcpClient(TcpClient tcpClient)
@@ -438,9 +434,10 @@ namespace AFTCPClient
                 mxWriter = new StreamWriter(mxStream);
 
                 mxState = AFTCPClientState.Connected;
-
-                mxEvents.Enqueue(AFTCPEventType.Connected);
-
+                lock(mxEventQueue)
+                {
+                    mxEventQueue.Enqueue(new AFTCPEvent(AFTCPEventType.Connected));
+                }
                 mxReadThread = new Thread(ReadData);
                 mxReadThread.IsBackground = true;
                 mxReadThread.Start();
@@ -482,57 +479,48 @@ namespace AFTCPClient
         {
             byte[] bytes = eventParams.packet.bytes;
             int bytesCount = eventParams.packet.bytesCount;
+            UInt32 left = (UInt32)bytesCount;
 
             net.Log("OnDataReceived:" + mnPacketSize + "|" + bytesCount);
-
-            if (mnPacketSize + bytesCount < ConstDefine.MAX_PACKET_LEN)
+            while (left > 0)
             {
-                Array.Copy(bytes, 0, mPacket, mnPacketSize, bytesCount);
-                mnPacketSize += (UInt32)bytesCount;
-
+                UInt32 copyCount = left < (ConstDefine.MAX_PACKET_LEN - mnPacketSize) ? left : (ConstDefine.MAX_PACKET_LEN - mnPacketSize);
+                Array.Copy(bytes, bytesCount - left, mPacket, mnPacketSize, copyCount);
+                mnPacketSize += copyCount;
+                left -= copyCount;
                 OnDataReceived();
             }
+
+
         }
 
         void OnDataReceived()
         {
-            if (mnPacketSize >= ConstDefine.AF_PACKET_HEAD_SIZE)
+            UInt32 left = mnPacketSize;
+            while(left >= ConstDefine.AF_PACKET_HEAD_SIZE)
             {
                 object structType = new MsgHead();
                 byte[] headBytes = new byte[Marshal.SizeOf(structType)];
 
-                Array.Copy(mPacket, 0, headBytes, 0, Marshal.SizeOf(structType));
+                Array.Copy(mPacket, mnPacketSize-left, headBytes, 0, Marshal.SizeOf(structType));
                 StructureTransform.ByteArrayToStructureEndian(headBytes, ref structType, 0);
                 MsgHead head = (MsgHead)structType;
 
-                if (head.unDataLen == mnPacketSize)
+                if (head.unDataLen >= left)
                 {
                     byte[] body_head = new byte[head.unDataLen];
-                    Array.Copy(mPacket, 0, body_head, 0, head.unDataLen);
-                    mnPacketSize = 0;
-
+                    Array.Copy(mPacket, mnPacketSize-left, body_head, 0, head.unDataLen);
+                    left -= head.unDataLen;
                     if (false == OnDataReceived(this, body_head, head.unDataLen))
                     {
                         OnClientDisconnect(new AFTCPEventParams());
                     }
-                }
-                else if (mnPacketSize > head.unDataLen)
+                } 
+                else
                 {
-                    UInt32 nNewLen = mnPacketSize - head.unDataLen;
-                    byte[] newpacket = new byte[ConstDefine.MAX_PACKET_LEN];
-                    Array.Copy(mPacket, head.unDataLen, newpacket, 0, nNewLen);
-
-                    byte[] body_head = new byte[head.unDataLen];
-                    Array.Copy(mPacket, 0, body_head, 0, head.unDataLen);
-                    mnPacketSize = nNewLen;
-                    mPacket = newpacket;
-
-                    if (false == OnDataReceived(this, body_head, head.unDataLen))
-                    {
-                        OnClientDisconnect(new AFTCPEventParams());
-                    }
-
-                    OnDataReceived();
+                    Array.Copy(mPacket, mnPacketSize - left, mPacket, 0, left);
+                    mnPacketSize = left;
+                    break;
                 }
             }
         }
