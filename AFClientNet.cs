@@ -519,10 +519,10 @@ namespace AFTCPClient
                 else
                 {
                     Array.Copy(mPacket, mnPacketSize - left, mPacket, 0, left);
-                    mnPacketSize = left;
                     break;
                 }
             }
+            mnPacketSize = left;
         }
 
         bool OnDataReceived(AFClientNet client, byte[] bytes, UInt32 bytesCount)
