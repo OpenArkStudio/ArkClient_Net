@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\_Out\Lib\</OutputPath>
+    <OutputPath>..\Bin\Lib\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -48,8 +48,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir $(SolutionDir)\_Out\$(Configuration)\Lib\
-copy /y $(TargetDir)\$(TargetName)$(TargetExt) $(SolutionDir)\_Out\$(Configuration)\Lib\$(TargetName)$(TargetExt)</PostBuildEvent>
+    <PostBuildEvent>mkdir $(SolutionDir)\Bin\$(Configuration)\Lib\
+copy /y $(TargetDir)\$(TargetName)$(TargetExt) $(SolutionDir)\Bin\$(Configuration)\Lib\$(TargetName)$(TargetExt)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
